@@ -1,10 +1,13 @@
 import { View } from 'react-native';
 import React, { useEffect } from 'react';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Layout, Text } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '@react-navigation/native';
 
 const Index = () => {
+  const router = useRouter();
+  const { colors } = useTheme()
 
   useEffect(() => {
     const checkUser = async () => {
@@ -24,7 +27,7 @@ const Index = () => {
   }, []);
 
   return (
-    <Layout style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Layout style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
       <Text category='h1'>Loading...</Text>
     </Layout>
   );

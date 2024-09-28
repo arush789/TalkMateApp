@@ -1,28 +1,27 @@
 export const LightCustomTheme = {
     dark: false,
     colors: {
-        primary: '#3498db', // Chat app: Calming blue for buttons
-        secondary: '#95a5a6', // Chat app: Muted gray for message background
-        background: '#f9f9f9', // Chat app: Light gray for the app background
-        header: '#f0f0f0', // Chat app: Light header for clean look
-        text: '#333333', // Chat app: Dark gray for better readability
-        tabBarBgColor: '#FFFFFF', // Chat app: Bright white tab bar
-        tabBarBtActive: '#3498db', // Chat app: Active buttons in blue
-        tabBarBtInActive: '#7f8c8d' // Chat app: Muted gray for inactive buttons
+        primary: '#2D9CDB', // Bright blue for chat buttons and active elements
+        secondary: '#D1D8E0', // Soft light gray for message background
+        background: '#F0F4F8', // Off-white for the app background
+        header: '#FFFFFF', // Crisp white for the header
+        text: '#2C3E50', // Darker gray for clear readability
+        tabBarBgColor: '#FFFFFF', // Pure white tab bar for contrast
+        tabBarBtActive: '#2D9CDB', // Active buttons in bright blue
+        tabBarBtInActive: '#BDC3C7' // Inactive buttons in neutral gray
     }
 };
-
 
 export const DarkCustomTheme = {
     dark: true,
     colors: {
-        primary: '#1abc9c', // Chat app: Teal green for buttons
-        secondary: '#7f8c8d', // Chat app: Muted gray for message background
-        background: '#181818', // Chat app: Dark gray for the app background
-        header: '#1c1c1c', // Chat app: Dark charcoal for the header
-        text: '#e0e0e0', // Chat app: Light gray for readability
-        tabBarBgColor: '#1c1c1c', // Chat app: Dark tab bar
-        tabBarBtActive: '#1abc9c', // Chat app: Active buttons in teal
-        tabBarBtInActive: '#7f8c8d' // Chat app: Inactive buttons in muted gray
+        primary: '#27AE60', // Vibrant green for buttons and active elements
+        secondary: '#1E201E', // Dark blue-gray for message background
+        background: '#121212', // Deep black for the app background
+        header: '#1F1F1F', // Darker gray for the header
+        text: '#ECF0F1', // Light gray for easy readability
+        tabBarBgColor: '#1F1F1F', // Dark gray tab bar
+        tabBarBtActive: '#27AE60', // Active buttons in vibrant green
+        tabBarBtInActive: '#7F8C8D' // Inactive buttons in muted gray
     }
 };

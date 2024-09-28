@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Pressable, Keyboard } from 'react-native';
 import Toast from 'react-native-toast-message';
 import axios from 'axios';
 import { registerRoute } from '../api/APIroutes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
+import { Icon, Input } from 'native-base';
+import { MaterialIcons } from '@expo/vector-icons';
+import CustomTextHeading from '../../components/CustomTextHeading';
+import { useTheme } from '@react-navigation/native';
+import CustomText from '../../components/CustomText';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -14,6 +19,9 @@ const Register = () => {
         confirmPassword: '',
     });
     const [loading, setLoading] = useState(false);
+    const [show, setShow] = useState(false);
+
+    const { colors } = useTheme()
 
     const handleChange = (name, value) => {
         setFormData({
@@ -67,10 +75,10 @@ const Register = () => {
     };
 
     const handleSubmit = async () => {
+        Keyboard.dismiss()
         if (handleValidation()) {
             const { password, username, email } = formData;
             setLoading(true);
-
             try {
                 const { data } = await axios.post(registerRoute, {
                     username,
@@ -115,60 +123,106 @@ const Register = () => {
     }, []);
 
     return (
-        <View className="flex-1 justify-center items-center bg-gray-100">
-            <View className="bg-white p-8 rounded-lg shadow-2xl w-11/12">
-                <Text className="text-2xl font-bold mb-6 text-center text-black">Register</Text>
+        <View
+            className="flex-1 justify-center items-center "
+            style={{
+                backgroundColor: colors.background,
+            }}
+        >
+            <Stack.Screen
+                options={{
+                    headerShown: true,
+                    headerStyle: { backgroundColor: colors.background },
+                    headerTitle: ""
+                }}
+            />
+            <View
+                className="px-8 py-12 rounded-3xl shadow-2xl w-11/12"
+                style={{
+                    backgroundColor: colors.secondary
+                }}
+            >
+                <CustomTextHeading
+                    className="text-3xl mb-6 text-center"
+                    style={{
+                        color: colors.text,
+                    }}
+                >Register</CustomTextHeading>
 
-                <TextInput
+                <Input
                     placeholder="Username"
                     name="username"
                     onChangeText={(value) => handleChange('username', value)}
-                    className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-md text-black"
+                    className="w-full p-4 text-lg"
+                    rounded="2xl"
+                    mb="5"
                     minLength={3}
+                    InputLeftElement={
+                        <Icon as={<MaterialIcons name="person" />} size={5} ml="5" color="muted.400" />
+                    }
+                    color={colors.text}
+                    backgroundColor={colors.background}
+                    borderWidth={0}
+                    autoComplete='off'
                 />
 
-                <TextInput
+
+                <Input
                     placeholder="Email"
                     name="email"
+                    rounded="2xl"
+                    mb="5"
                     onChangeText={(value) => handleChange('email', value)}
-                    className="w-full px-4 py-2 mb-6 border border-gray-300 rounded-md text-black"
+                    className="w-full p-4 text-lg"
+                    color={colors.text}
+                    backgroundColor={colors.background}
+                    borderWidth={0}
                 />
 
-                <TextInput
+                <Input
                     placeholder="Password"
                     name="password"
-                    secureTextEntry
+                    rounded="2xl"
+                    mb="5"
+
                     onChangeText={(value) => handleChange('password', value)}
-                    className="w-full px-4 py-2 mb-6 border border-gray-300 rounded-md text-black"
+                    className="w-full p-4 text-lg"
+                    type={show ? 'text' : 'password'}
+                    InputRightElement={
+                        <Pressable onPress={() => setShow(!show)}>
+                            <Icon
+                                as={<MaterialIcons name={show ? 'visibility' : 'visibility-off'} />}
+                                size={5}
+                                mr="5"
+                                color="muted.400"
+                            />
+                        </Pressable>
+                    }
+                    color={colors.text}
+                    backgroundColor={colors.background}
+                    borderWidth={0}
                 />
 
-                <TextInput
+                <Input
                     placeholder="Confirm Password"
                     name="confirmPassword"
-                    secureTextEntry
+                    rounded="2xl"
+                    mb="5"
                     onChangeText={(value) => handleChange('confirmPassword', value)}
-                    className="w-full px-4 py-2 mb-6 border border-gray-300 rounded-md text-black"
+                    className="w-full p-4 text-lg"
+                    color={colors.text}
+                    backgroundColor={colors.background}
+                    borderWidth={0}
                 />
 
-                <TouchableOpacity onPress={handleSubmit} className="w-full bg-red-400 py-3 rounded-xl" disabled={loading}>
+                <TouchableOpacity onPress={handleSubmit} className="w-full bg-red-500 py-4 rounded-2xl" disabled={loading}>
                     {loading ? (
                         <ActivityIndicator color="white" />
                     ) : (
-                        <Text className="text-white text-center font-semibold">Sign Up</Text>
+                        <CustomText className="text-white text-center text-xl">Sign Up</CustomText>
                     )}
                 </TouchableOpacity>
 
-                <View className="flex justify-center items-center mt-5">
-                    <Text className="text-black">
-                        Already have an account?{' '}
-                        <Text
-                            className="text-blue-500 font-bold"
-                            onPress={() => router.replace("/(auth)/Login")}
-                        >
-                            Login
-                        </Text>
-                    </Text>
-                </View>
             </View>
 
             <Toast />
