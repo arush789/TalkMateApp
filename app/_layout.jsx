@@ -4,6 +4,10 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import * as eva from "@eva-design/eva";
+import { ApplicationProvider } from "@ui-kitten/components";
+
+import { DarkCustomTheme, LightCustomTheme } from "../constants/Theme";
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -27,11 +31,14 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+    <ThemeProvider
+      value={colorScheme === "dark" ? DarkCustomTheme : LightCustomTheme}
+    >
+      <ApplicationProvider {...eva} theme={colorScheme === "dark" ? eva.dark : eva.light}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+      </ApplicationProvider>
     </ThemeProvider>
   );
 }
