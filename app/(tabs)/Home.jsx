@@ -10,12 +10,20 @@ import { AntDesign } from "@expo/vector-icons";
 import CustomTextHeading from '../../components/CustomTextHeading';
 import CustomText from '../../components/CustomText';
 import Friends from "../../components/Friends"
+import socket from '../../socket';
 
 const Home = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [contacts, setContacts] = useState(null);
   const [loading, setLoading] = useState(true)
   const { colors } = useTheme()
+
+  useEffect(() => {
+    if (currentUser) {
+      socket.emit("add-user", currentUser._id);
+    }
+  }, [currentUser]);
+
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -56,6 +64,14 @@ const Home = () => {
     fetchContacts();
   }, [currentUser]);
 
+  const handleChatChange = (chat) => {
+    socket.emit("set-active-chat", {
+      userId: currentUser._id,
+      activeChat: chat._id,
+    });
+
+  };
+
   return (
     <View className="flex-1 px-5">
       <Stack.Screen
@@ -70,6 +86,7 @@ const Home = () => {
           currentUser={currentUser}
           contacts={contacts}
           loading={loading}
+          handleChatChange={handleChatChange}
         />
       </ScrollView>
     </View>

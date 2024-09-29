@@ -1,76 +1,56 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@react-navigation/native';
 import axios from 'axios';
-import { getAllMessageRoute, host, sendMessageRoute } from "../api/APIroutes";
+import { getAllMessageRoute, sendMessageRoute } from "../api/APIroutes";
 import CustomText from "../../components/CustomText";
 import ChatInput from '../../components/ChatInput';
 import uuid from 'react-native-uuid';
 import Messages from '../../components/Messages';
-import { io } from 'socket.io-client';
+import socket from '../../socket';
 
 const ChatPage = () => {
     const params = useLocalSearchParams();
     const { colors } = useTheme();
     const [messages, setMessages] = useState([]);
     const [arrivalMessage, setArrivalMessage] = useState(null);
-    const [image, setImage] = useState()
+    const [image, setImage] = useState();
     const [loading, setLoading] = useState(true);
-    const socket = useRef();
 
     useEffect(() => {
-        if (params.currentUser) {
-            socket.current = io(host);
-            socket.current.emit("add-user", params.currentUser);
-        }
-
-        if (socket.current) {
-            socket.current.emit("set-active-chat", {
-                userId: params.currentUser,
-                activeChat: params.contactId,
+        socket.on("msg-recieve", (data) => {
+            setArrivalMessage({
+                fromSelf: false,
+                message: data.message,
+                image: data.image,
+                messageId: data.messageId,
             });
-        }
+        });
+
+        socket.on("msg-deleted", (data) => {
+            if (data.messageId || data.id) {
+                setMessages((prevMessages) => {
+                    const updatedMessages = prevMessages.filter((message) => {
+                        return (message.id && message.id !== data.messageId) ||
+                            (message.messageId && message.messageId !== data.messageId);
+                    });
+                    return updatedMessages;
+                });
+            } else {
+                console.error("Message ID is missing in the delete event data:", data);
+            }
+        });
 
         return () => {
-            socket.current.disconnect();
+            socket.off("msg-recieve");
+            socket.off("msg-deleted");
         };
     }, [params.currentUser]);
-
-
-    useEffect(() => {
-        if (socket.current) {
-            socket.current.on("msg-recieve", (data) => {
-                setArrivalMessage({
-                    fromSelf: false,
-                    message: data.message,
-                    image: data.image,
-                    messageId: data.messageId,
-                });
-            });
-
-            socket.current.on("msg-deleted", (data) => {
-
-                if (data.messageId || data.id) {
-                    setMessages((prevMessages) => {
-                        const updatedMessages = prevMessages.filter((message) => {
-                            return (message.id && message.id !== data.messageId) ||
-                                (message.messageId && message.messageId !== data.messageId);
-                        });
-                        return updatedMessages;
-                    });
-                } else {
-                    console.error("Message ID is missing in the delete event data:", data);
-                }
-            });
-
-        }
-    }, [socket]);
 
     useEffect(() => {
         arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
     }, [arrivalMessage]);
-
 
     const fetchMessages = async () => {
         setLoading(true);
@@ -112,7 +92,7 @@ const ChatPage = () => {
                 messageId,
             });
 
-            socket.current.emit("send-msg", {
+            socket.emit("send-msg", {
                 from: params.currentUser,
                 to: params.contactId,
                 message: messageText,
@@ -125,7 +105,6 @@ const ChatPage = () => {
             setMessages((prevMessages) => prevMessages.filter(msg => msg.messageId !== messageId));
         }
     };
-
 
     return (
         <KeyboardAvoidingView

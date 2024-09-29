@@ -6,7 +6,7 @@ import { Skeleton } from "native-base";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 
-const Friends = ({ currentUser, contacts, loading }) => {
+const Friends = ({ currentUser, contacts, loading, handleChatChange }) => {
     const { colors } = useTheme();
     const fallbackImage = require('../assets/images/blank-profile-picture-973460_1280.png');
 
@@ -57,9 +57,10 @@ const Friends = ({ currentUser, contacts, loading }) => {
                                         params: {
                                             currentUser: currentUser._id,
                                             contactName: contact.username,
-                                            contactId: contact._id
+                                            contactId: contact._id,
                                         }
                                     }}
+                                    onPress={() => handleChatChange(contact)}
                                     key={contact._id}
                                     className="mb-5 rounded-3xl"
                                     style={{ backgroundColor: colors.secondary }}

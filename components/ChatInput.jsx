@@ -141,14 +141,7 @@ const ChatInput = ({ handleSendMsg, image, setImage }) => {
                                 onPress={handleFileUpload}
                                 className="rounded-3xl px-2"
                             >
-
-
-
-
-
-
                                 <MaterialIcons name="add-circle-outline" size={30} color={colors.primary} />
-
                             </TouchableOpacity>
 
                         </View>

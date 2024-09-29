@@ -6,7 +6,7 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import axios from 'axios';
 import { deleteMessageRoute } from '../app/api/APIroutes';
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
-import { storage } from '../firebaseClient'; // Import Firebase storage
+import { storage } from '../firebaseClient';
 
 const Messages = ({ messages, loading, setMessages, socket, currentUser, contactId }) => {
     const { colors } = useTheme();
@@ -124,7 +124,7 @@ const Messages = ({ messages, loading, setMessages, socket, currentUser, contact
                                 </TouchableOpacity>
                             )}
                             {message.message !== "" && (
-                                <CustomText style={{ color: message.fromSelf ? "" : colors.text }} className="text-[15px]">
+                                <CustomText style={{ color: message.fromSelf ? "white" : colors.text }} className="text-[15px]">
                                     {message.message}
                                 </CustomText>
                             )}
