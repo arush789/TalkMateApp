@@ -1,7 +1,7 @@
 import { Image, Pressable, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Text } from '@ui-kitten/components'
-import { Stack } from 'expo-router'
+import { router, Stack } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useTheme } from '@react-navigation/native'
 import CustomText from '../../components/CustomText'

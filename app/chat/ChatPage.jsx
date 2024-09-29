@@ -15,6 +15,7 @@ const ChatPage = () => {
     const { colors } = useTheme();
     const [messages, setMessages] = useState([]);
     const [arrivalMessage, setArrivalMessage] = useState(null);
+    const [image, setImage] = useState()
     const [loading, setLoading] = useState(true);
     const socket = useRef();
 
@@ -46,6 +47,21 @@ const ChatPage = () => {
                     image: data.image,
                     messageId: data.messageId,
                 });
+            });
+
+            socket.current.on("msg-deleted", (data) => {
+
+                if (data.messageId || data.id) {
+                    setMessages((prevMessages) => {
+                        const updatedMessages = prevMessages.filter((message) => {
+                            return (message.id && message.id !== data.messageId) ||
+                                (message.messageId && message.messageId !== data.messageId);
+                        });
+                        return updatedMessages;
+                    });
+                } else {
+                    console.error("Message ID is missing in the delete event data:", data);
+                }
             });
 
         }
@@ -128,8 +144,12 @@ const ChatPage = () => {
             <Messages
                 messages={messages}
                 loading={loading}
+                setMessages={setMessages}
+                socket={socket}
+                currentUser={params.currentUser}
+                contactId={params.contactId}
             />
-            <ChatInput handleSendMsg={handleSendMsg} />
+            <ChatInput handleSendMsg={handleSendMsg} image={image} setImage={setImage} />
         </KeyboardAvoidingView>
     );
 };
