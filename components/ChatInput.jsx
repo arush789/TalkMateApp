@@ -14,34 +14,40 @@ const ChatInput = ({ handleSendMsg }) => {
         }
     };
 
-
     return (
-        <View style={{ backgroundColor: colors.secondary }} className="mb-5 mx-4 flex-row items-center rounded-3xl px-2">
-            <TextInput
-                value={msg}
-                onChangeText={(value) => setMsg(value)}
-                placeholder="Type a message..."
-                placeholderTextColor={colors.text}
-                multiline={true}
-                maxLength={500}
+        <View className="relative">
+            <View
+                className={`absolute bottom-0 left-0 right-0 rounded-3xl p-1 mb-5 shadow-lg mx-5`}
                 style={{
-                    flex: 1,
-                    backgroundColor: colors.secondary,
-                    color: colors.text,
-                    maxHeight: 150,
-                    minHeight: 50,
-                }}
-                className="p-4 rounded-3xl items-center max-w-[90%]"
-            />
-            <TouchableOpacity
-                onPress={onSend}
-                className="py-4 px-4 rounded-full absolute right-0"
-                style={{
-                    backgroundColor: colors.primary,
+                    backgroundColor: colors.secondary
                 }}
             >
-                <Ionicons name="send" size={24} color="white" />
-            </TouchableOpacity>
+                <View className="flex-row items-center">
+                    <TextInput
+                        value={msg}
+                        onChangeText={(value) => setMsg(value)}
+                        placeholder="Type a message..."
+                        placeholderTextColor={colors.text}
+                        multiline={true}
+                        maxLength={500}
+                        className="flex-1 bg-transparent  max-h-36 min-h-12 p-4 rounded-3xl"
+                        style={{
+                            color: colors.text
+                        }}
+                    />
+                    {msg.length > 0 &&
+                        <TouchableOpacity
+                            onPress={onSend}
+                            className="mr-1 rounded-3xl p-4"
+                            style={{
+                                backgroundColor: colors.primary
+                            }}
+                        >
+                            <Ionicons name="send" size={24} color="white" />
+                        </TouchableOpacity>
+                    }
+                </View>
+            </View>
         </View>
     );
 };

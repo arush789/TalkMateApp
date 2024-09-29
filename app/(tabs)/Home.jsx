@@ -1,22 +1,21 @@
 import { View, ScrollView, Image, Pressable, Text } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { router, Stack } from "expo-router";
-import { allUsersRoute } from "../api/APIroutes";
+import { allUsersRoute, host } from "../api/APIroutes";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useTheme } from "@react-navigation/native";
 import { AntDesign } from "@expo/vector-icons";
 import CustomTextHeading from '../../components/CustomTextHeading';
 import CustomText from '../../components/CustomText';
-import Friends from "../../components/friends"
+import Friends from "../../components/Friends"
 
 const Home = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [contacts, setContacts] = useState(null);
   const [loading, setLoading] = useState(true)
   const { colors } = useTheme()
-
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -67,16 +66,12 @@ const Home = () => {
         }}
       />
       <ScrollView className="flex-1">
-
-        {/* Contacts List */}
         <Friends
           currentUser={currentUser}
           contacts={contacts}
           loading={loading}
         />
       </ScrollView>
-
-
     </View>
   );
 };
