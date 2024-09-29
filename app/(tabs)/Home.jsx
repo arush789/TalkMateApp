@@ -1,19 +1,64 @@
-import { View } from "react-native";
+import { View, ScrollView, Image, Pressable, Text } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Button, Layout, Text } from "@ui-kitten/components";
+
 import { router, Stack } from "expo-router";
+import { allUsersRoute } from "../api/APIroutes";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { useTheme } from "@react-navigation/native";
+import { AntDesign } from "@expo/vector-icons";
+import CustomTextHeading from '../../components/CustomTextHeading';
+import CustomText from '../../components/CustomText';
+import Friends from "../../components/friends"
 
 const Home = () => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [contacts, setContacts] = useState(null);
+  const [loading, setLoading] = useState(true)
+  const { colors } = useTheme()
 
-  const handleLogout = () => {
-    AsyncStorage.clear()
-    router.replace("/(auth)/Login")
-  }
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem("chat-app-user");
+        if (!storedUser) {
+          router.replace("/(auth)/Login");
+        } else {
+          const parsedUser = JSON.parse(storedUser);
+          setCurrentUser(parsedUser);
+        }
+      } catch (error) {
+        console.error("Error fetching user from AsyncStorage:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    setLoading(true)
+    const fetchContacts = async () => {
+      if (currentUser && Object.keys(currentUser).length > 0) {
+        if (currentUser.isAvatarImageSet) {
+          try {
+            const { data } = await axios.get(`${allUsersRoute}/${currentUser._id}`);
+            setContacts(data);
+            setLoading(false)
+          } catch (error) {
+            console.error("Failed to fetch contacts", error);
+          }
+        } else {
+          router.push("/avatar/");
+        }
+      }
+    };
+
+    fetchContacts();
+  }, [currentUser]);
 
   return (
-
-    <View className=" flex-1 px-5">
+    <View className="flex-1 px-5">
       <Stack.Screen
         options={{
           headerShown: true,
@@ -21,15 +66,40 @@ const Home = () => {
           headerStyle: { height: 50 },
         }}
       />
-      <Text category='h1' >HOME</Text>
-      <Button
-        status='danger'
-        onPress={handleLogout}
-      >
-        LogOut
-      </Button>
-    </View>
+      <ScrollView className="flex-1">
 
+        {/* {currentUser && (
+          <View className="flex-row items-center justify-between mb-4 p-4  rounded-3xl " style={{
+            backgroundColor: colors.secondary
+          }}>
+            <View className="flex-row items-center ">
+              <View className="border-2 border-white rounded-full mr-4">
+                <Image
+                  source={{ uri: `data:image/png;base64,${currentUser.avatarImage}` }}
+                  className="w-14 h-14 rounded-full"
+                  resizeMode="cover"
+                />
+              </View>
+              <CustomText style={{
+                color: colors.text
+              }}
+                className="text-xl">{currentUser.username}</CustomText>
+            </View>
+            <Pressable onPress={handleLogout} className=" bg-red-500 p-3 rounded-3xl" >
+              <AntDesign name="login" size={24} color={colors.text} />
+            </Pressable>
+          </View>
+        )} */}
+
+        {/* Contacts List */}
+        <Friends
+          contacts={contacts}
+          loading={loading}
+        />
+      </ScrollView>
+
+
+    </View>
   );
 };
 
