@@ -68,31 +68,9 @@ const Home = () => {
       />
       <ScrollView className="flex-1">
 
-        {/* {currentUser && (
-          <View className="flex-row items-center justify-between mb-4 p-4  rounded-3xl " style={{
-            backgroundColor: colors.secondary
-          }}>
-            <View className="flex-row items-center ">
-              <View className="border-2 border-white rounded-full mr-4">
-                <Image
-                  source={{ uri: `data:image/png;base64,${currentUser.avatarImage}` }}
-                  className="w-14 h-14 rounded-full"
-                  resizeMode="cover"
-                />
-              </View>
-              <CustomText style={{
-                color: colors.text
-              }}
-                className="text-xl">{currentUser.username}</CustomText>
-            </View>
-            <Pressable onPress={handleLogout} className=" bg-red-500 p-3 rounded-3xl" >
-              <AntDesign name="login" size={24} color={colors.text} />
-            </Pressable>
-          </View>
-        )} */}
-
         {/* Contacts List */}
         <Friends
+          currentUser={currentUser}
           contacts={contacts}
           loading={loading}
         />
