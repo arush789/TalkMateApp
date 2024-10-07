@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import * as eva from "@eva-design/eva";
 import { ApplicationProvider } from "@ui-kitten/components";
+import { NativeBaseProvider } from "native-base";
 
 import { DarkCustomTheme, LightCustomTheme } from "../constants/Theme";
 
@@ -18,6 +19,9 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Poppins_SemiBold: require("../assets/fonts/Poppins/Poppins-SemiBold.ttf"),
+    Poppins_Bold: require("../assets/fonts/Poppins/Poppins-Bold.ttf"),
+    Poppins_Medium: require("../assets/fonts/Poppins/Poppins-Medium.ttf"),
   });
 
   useEffect(() => {
@@ -34,11 +38,14 @@ export default function RootLayout() {
     <ThemeProvider
       value={colorScheme === "dark" ? DarkCustomTheme : LightCustomTheme}
     >
-      <ApplicationProvider {...eva} theme={colorScheme === "dark" ? eva.dark : eva.light}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
-      </ApplicationProvider>
+      <NativeBaseProvider>
+
+        <ApplicationProvider {...eva} theme={colorScheme === "dark" ? eva.dark : eva.light}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+        </ApplicationProvider>
+      </NativeBaseProvider>
     </ThemeProvider>
   );
 }
