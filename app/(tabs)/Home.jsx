@@ -16,6 +16,8 @@ const Home = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [contacts, setContacts] = useState(null);
   const [loading, setLoading] = useState(true)
+  const [pendingMessagesCount, setPendingMessagesCount] = useState({});
+
   const { colors } = useTheme()
 
   useEffect(() => {
@@ -69,7 +71,7 @@ const Home = () => {
       userId: currentUser._id,
       activeChat: chat._id,
     });
-
+    setPendingMessagesCount({})
   };
 
   return (
@@ -85,7 +87,10 @@ const Home = () => {
         <Friends
           currentUser={currentUser}
           contacts={contacts}
+          socket={socket}
           loading={loading}
+          pendingMessagesCount={pendingMessagesCount}
+          setPendingMessagesCount={setPendingMessagesCount}
           handleChatChange={handleChatChange}
         />
       </ScrollView>

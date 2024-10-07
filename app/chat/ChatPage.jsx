@@ -20,13 +20,16 @@ const ChatPage = () => {
 
     useEffect(() => {
         socket.on("msg-recieve", (data) => {
-            setArrivalMessage({
-                fromSelf: false,
-                message: data.message,
-                image: data.image,
-                messageId: data.messageId,
-            });
+            if (data) {
+                setArrivalMessage({
+                    fromSelf: false,
+                    message: data.message || "",
+                    image: data.image || "",
+                    messageId: data.messageId || uuid.v4(),
+                });
+            }
         });
+
 
         socket.on("msg-deleted", (data) => {
             if (data.messageId || data.id) {
@@ -49,7 +52,9 @@ const ChatPage = () => {
     }, [params.currentUser]);
 
     useEffect(() => {
-        arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
+        if (arrivalMessage) {
+            setMessages((prev) => [...prev, arrivalMessage]);
+        }
     }, [arrivalMessage]);
 
     const fetchMessages = async () => {
@@ -59,19 +64,28 @@ const ChatPage = () => {
                 from: params.currentUser,
                 to: params.contactId,
             });
-            setMessages(response.data);
+
+            if (response.data && Array.isArray(response.data.messages)) {
+                setMessages(response.data.messages);
+            } else {
+                setMessages([]);
+            }
         } catch (error) {
             console.error("Error fetching messages:", error);
+            setMessages([]);
         } finally {
             setLoading(false);
         }
     };
 
+
     useEffect(() => {
-        if (params.contactId) {
+        if (params.currentUser && params.contactId) {
             fetchMessages();
         }
-    }, [params.contactId]);
+    }, [params.contactId, params.currentUser]);
+
+
 
     const handleSendMsg = async (msg, image) => {
         const messageText = msg || "";
@@ -84,6 +98,7 @@ const ChatPage = () => {
         ]);
 
         try {
+
             await axios.post(sendMessageRoute, {
                 from: params.currentUser,
                 to: params.contactId,
@@ -92,6 +107,14 @@ const ChatPage = () => {
                 messageId,
             });
 
+            socket.emit("lastMsg", {
+                from: params.currentUser,
+                to: params.contactId,
+                message: messageText,
+                image: imageUrl,
+                messageId,
+            })
+
             socket.emit("send-msg", {
                 from: params.currentUser,
                 to: params.contactId,
@@ -99,6 +122,7 @@ const ChatPage = () => {
                 image: imageUrl,
                 messageId,
             });
+
 
         } catch (error) {
             console.error('Error sending message:', error);
@@ -121,7 +145,7 @@ const ChatPage = () => {
                 }}
             />
             <Messages
-                messages={messages}
+                messages={messages || []}
                 loading={loading}
                 setMessages={setMessages}
                 socket={socket}

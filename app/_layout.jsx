@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 import * as eva from "@eva-design/eva";
 import { ApplicationProvider } from "@ui-kitten/components";
 import { NativeBaseProvider } from "native-base";
+import { GlobalStateProvider } from "../components/globalState/GlobalProvider"
 
 import { DarkCustomTheme, LightCustomTheme } from "../constants/Theme";
 
@@ -39,12 +40,13 @@ export default function RootLayout() {
       value={colorScheme === "dark" ? DarkCustomTheme : LightCustomTheme}
     >
       <NativeBaseProvider>
-
-        <ApplicationProvider {...eva} theme={colorScheme === "dark" ? eva.dark : eva.light}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
-        </ApplicationProvider>
+        <GlobalStateProvider>
+          <ApplicationProvider {...eva} theme={colorScheme === "dark" ? eva.dark : eva.light}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+          </ApplicationProvider>
+        </GlobalStateProvider>
       </NativeBaseProvider>
     </ThemeProvider>
   );

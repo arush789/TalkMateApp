@@ -1,26 +1,113 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, View } from "react-native";
 import { useTheme } from "@react-navigation/native";
 import CustomText from './CustomText';
 import { Skeleton } from "native-base";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
+import { getAllMessageRoute } from "@/app/api/APIroutes";
+import { useGlobalState } from "../components/globalState/GlobalProvider"
+import axios from "axios";
 
-const Friends = ({ currentUser, contacts, loading, handleChatChange }) => {
+const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pendingMessagesCount, setPendingMessagesCount }) => {
     const { colors } = useTheme();
     const fallbackImage = require('../assets/images/blank-profile-picture-973460_1280.png');
-
-
+    const { lastMessageShow, setLastMessageShow } = useGlobalState()
     const [imageErrors, setImageErrors] = useState({});
-
 
     const handleImageError = (contactId) => {
         setImageErrors((prev) => ({ ...prev, [contactId]: true }));
     };
 
+    const fetchLastMessage = async (contactId) => {
+        try {
+            const response = await axios.post(getAllMessageRoute, {
+                from: currentUser._id,
+                to: contactId,
+            });
+
+            const lastMessageData = response.data?.lastMessage || null;
+            const pendingMessageData = response.data?.pendingRead || [];
+
+            let lastMessageText = "No messages yet";
+            let lastMessageSide = "";
+            let pendingCount = 0;
+
+            if (lastMessageData) {
+                if (lastMessageData.message) {
+                    lastMessageText = lastMessageData.message;
+                    lastMessageSide = lastMessageData.fromSelf;
+                } else if (lastMessageData.image) {
+                    lastMessageText = "Sent an image";
+                    lastMessageSide = lastMessageData.fromSelf;
+                }
+            }
+
+            pendingCount = pendingMessageData.length;
+
+            setLastMessageShow((prev) => ({
+                ...prev,
+                [contactId]: {
+                    text: lastMessageText,
+                    fromSelf: lastMessageSide,
+                },
+            }));
+
+            setPendingMessagesCount((prev) => ({
+                ...prev,
+                [contactId]: pendingCount,
+            }));
+
+        } catch (error) {
+            console.error(`Error fetching message for contact ${contactId}:`, error);
+            setLastMessageShow((prev) => ({
+                ...prev,
+                [contactId]: {
+                    text: "No messages yet",
+                    fromSelf: false,
+                },
+            }));
+        }
+    };
+
+    useEffect(() => {
+        if (contacts) {
+            contacts.forEach((contact) => {
+                fetchLastMessage(contact._id);
+            });
+        }
+    }, [contacts]);
+
+    useEffect(() => {
+        socket.on("lastMsgRecieve", (data) => {
+            const { message, fromSelf, from, to, image } = data;
+
+            const contactId = from === currentUser._id ? to : from;
+
+            if (from !== currentUser._id) {
+                setLastMessageShow((prev) => ({
+                    ...prev,
+                    [contactId]: {
+                        text: image ? "Sent an image" : message || "No messages yet",
+                        fromSelf: fromSelf,
+                    },
+                }));
+
+
+                setPendingMessagesCount((prev) => ({
+                    ...prev,
+                    [contactId]: (prev[contactId] || 0) + 1,
+                }));
+            }
+        });
+
+        return () => {
+            socket.off("lastMsgRecieve");
+        };
+    }, [socket, currentUser]);
+
     return (
         <View>
-
             <View className="flex-row justify-between items-center mb-6">
                 <CustomText className="mt-2 text-3xl font-semibold" style={{ color: colors.text }}>
                     Friends
@@ -29,7 +116,6 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange }) => {
                     <Ionicons name="notifications-outline" size={30} color={colors.text} />
                 </View>
             </View>
-
 
             {loading ? (
                 <>
@@ -42,10 +128,8 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange }) => {
                 </>
             ) : (
                 <>
-
                     {contacts && contacts.length > 0 ? (
                         contacts.map((contact) => {
-
                             const imageUri = imageErrors[contact._id]
                                 ? fallbackImage
                                 : { uri: `data:image/png;base64,${contact.avatarImage}` };
@@ -66,7 +150,6 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange }) => {
                                     style={{ backgroundColor: colors.secondary }}
                                 >
                                     <View className="flex-row items-center p-4 mb-4">
-
                                         <View
                                             className="border-2 p-1 rounded-full mr-4"
                                             style={{ borderColor: colors.text }}
@@ -79,10 +162,21 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange }) => {
                                             />
                                         </View>
 
-                                        {/* Username */}
-                                        <CustomText className="text-lg font-medium" style={{ color: colors.text }}>
-                                            {contact.username}
-                                        </CustomText>
+                                        <View>
+                                            {/* Username */}
+                                            <CustomText className="text-lg font-medium" style={{ color: colors.text }}>
+                                                {contact.username}
+                                            </CustomText>
+                                            {/* Last message */}
+                                            <CustomText className={`text-sm ${lastMessageShow[contact._id]?.fromSelf ? "text-gray-600" : "text-gray-300"}`}>
+                                                {lastMessageShow[contact._id]?.fromSelf ? "You: " : ""}{lastMessageShow[contact._id]?.text || "Loading..."}
+                                            </CustomText>
+                                            {pendingMessagesCount[contact._id] > 0 && (
+                                                <CustomText className="text-xs text-red-500">
+                                                    {pendingMessagesCount[contact._id]} new message{pendingMessagesCount[contact._id] > 1 ? 's' : ''}
+                                                </CustomText>
+                                            )}
+                                        </View>
                                     </View>
                                 </Link>
                             );
