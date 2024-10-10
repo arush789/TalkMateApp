@@ -15,8 +15,12 @@ const ChatPage = () => {
     const { colors } = useTheme();
     const [messages, setMessages] = useState([]);
     const [arrivalMessage, setArrivalMessage] = useState(null);
+    const [selectedGif, setSelectedGif] = useState('');
+
     const [image, setImage] = useState();
     const [loading, setLoading] = useState(true);
+
+
 
     useEffect(() => {
         socket.on("msg-recieve", (data) => {
@@ -25,6 +29,7 @@ const ChatPage = () => {
                     fromSelf: false,
                     message: data.message || "",
                     image: data.image || "",
+                    gif: data.gif || "",
                     messageId: data.messageId || uuid.v4(),
                 });
             }
@@ -32,6 +37,7 @@ const ChatPage = () => {
 
 
         socket.on("msg-deleted", (data) => {
+
             if (data.messageId || data.id) {
                 setMessages((prevMessages) => {
                     const updatedMessages = prevMessages.filter((message) => {
@@ -65,7 +71,7 @@ const ChatPage = () => {
                 to: params.contactId,
             });
 
-            if (response.data && Array.isArray(response.data.messages)) {
+            if (response.data) {
                 setMessages(response.data.messages);
             } else {
                 setMessages([]);
@@ -87,23 +93,24 @@ const ChatPage = () => {
 
 
 
-    const handleSendMsg = async (msg, image) => {
+    const handleSendMsg = async (msg, image, gif) => {
         const messageText = msg || "";
         const imageUrl = image || "";
+        const gifUrl = gif || "";
         const messageId = uuid.v4();
 
         setMessages((prevMessages) => [
             ...prevMessages,
-            { fromSelf: true, message: messageText, image: imageUrl, messageId },
+            { fromSelf: true, message: messageText, image: imageUrl, gif: gifUrl, messageId },
         ]);
 
         try {
-
             await axios.post(sendMessageRoute, {
                 from: params.currentUser,
                 to: params.contactId,
                 messages: messageText,
                 image: imageUrl,
+                gif: gifUrl,
                 messageId,
             });
 
@@ -112,6 +119,7 @@ const ChatPage = () => {
                 to: params.contactId,
                 message: messageText,
                 image: imageUrl,
+                gif: gifUrl,
                 messageId,
             })
 
@@ -120,6 +128,7 @@ const ChatPage = () => {
                 to: params.contactId,
                 message: messageText,
                 image: imageUrl,
+                gif: gifUrl,
                 messageId,
             });
 
@@ -146,13 +155,14 @@ const ChatPage = () => {
             />
             <Messages
                 messages={messages || []}
+
                 loading={loading}
                 setMessages={setMessages}
                 socket={socket}
                 currentUser={params.currentUser}
                 contactId={params.contactId}
             />
-            <ChatInput handleSendMsg={handleSendMsg} image={image} setImage={setImage} />
+            <ChatInput handleSendMsg={handleSendMsg} image={image} setImage={setImage} selectedGif={selectedGif} setSelectedGif={setSelectedGif} />
         </KeyboardAvoidingView>
     );
 };

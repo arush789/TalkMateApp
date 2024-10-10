@@ -40,6 +40,9 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
                 } else if (lastMessageData.image) {
                     lastMessageText = "Sent an image";
                     lastMessageSide = lastMessageData.fromSelf;
+                } else if (lastMessageData.gif) {
+                    lastMessageText = "Sent a GIF";
+                    lastMessageSide = lastMessageData.fromSelf;
                 }
             }
 
@@ -80,7 +83,7 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
 
     useEffect(() => {
         socket.on("lastMsgRecieve", (data) => {
-            const { message, fromSelf, from, to, image } = data;
+            const { message, fromSelf, from, to, image, gif } = data;
 
             const contactId = from === currentUser._id ? to : from;
 
@@ -88,16 +91,16 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
                 setLastMessageShow((prev) => ({
                     ...prev,
                     [contactId]: {
-                        text: image ? "Sent an image" : message || "No messages yet",
+                        text: image ? "Sent an image" : gif ? "Sent a GIF" : message || "No messages yet",
                         fromSelf: fromSelf,
                     },
                 }));
 
 
-                setPendingMessagesCount((prev) => ({
-                    ...prev,
-                    [contactId]: (prev[contactId] || 0) + 1,
-                }));
+                // setPendingMessagesCount((prev) => ({
+                //     ...prev,
+                //     [contactId]: (prev[contactId] || 0) + 1,
+                // }));
             }
         });
 
@@ -108,7 +111,7 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
 
     return (
         <View>
-            <View className="flex-row justify-between items-center mb-6">
+            <View className="flex-row justify-between items-center mb-6 px-5">
                 <CustomText className="mt-2 text-3xl font-semibold" style={{ color: colors.text }}>
                     Friends
                 </CustomText>
@@ -146,7 +149,7 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
                                     }}
                                     onPress={() => handleChatChange(contact)}
                                     key={contact._id}
-                                    className="mb-5 rounded-3xl"
+                                    className="mb-3 rounded-full mx-4"
                                     style={{ backgroundColor: colors.secondary }}
                                 >
                                     <View className="flex-row items-center p-4 mb-4">
@@ -168,7 +171,7 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
                                                 {contact.username}
                                             </CustomText>
                                             {/* Last message */}
-                                            <CustomText className={`text-sm ${lastMessageShow[contact._id]?.fromSelf ? "text-gray-600" : "text-gray-300"}`}>
+                                            <CustomText className={`text-sm text-gray-600`}>
                                                 {lastMessageShow[contact._id]?.fromSelf ? "You: " : ""}{lastMessageShow[contact._id]?.text || "Loading..."}
                                             </CustomText>
                                             {pendingMessagesCount[contact._id] > 0 && (

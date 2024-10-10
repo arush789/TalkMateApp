@@ -36,7 +36,7 @@ const Explore = () => {
 
 
     return (
-        <View className=" flex-1 px-5">
+        <View className=" flex-1 px-5 justify-center ">
             <Stack.Screen
                 options={{
                     headerShown: true,
@@ -45,27 +45,40 @@ const Explore = () => {
                 }}
             />
             {currentUser && (
-                <View className="flex-row items-center justify-between mb-4 p-4  rounded-3xl " style={{
+                <View className="space-y-4 p-4 rounded-3xl items-center " style={{
                     backgroundColor: colors.secondary
                 }}>
-                    <View className="flex-row items-center ">
-                        <View className="border-2 border-white rounded-full mr-4">
+                    <View className=" justify-center items-center ">
+                        <View className="border-2 border-white rounded-full ">
                             <Image
                                 source={{ uri: `data:image/png;base64,${currentUser.avatarImage}` }}
                                 className="w-14 h-14 rounded-full"
                                 resizeMode="cover"
                             />
                         </View>
+                    </View>
+                    <View className="items-center">
                         <CustomText style={{
                             color: colors.text
                         }}
-                            className="text-xl">{currentUser.username}</CustomText>
+                            className="text-xl">{currentUser.username}
+                        </CustomText>
+                        <CustomText style={{
+                            color: colors.text
+                        }}
+                            className="text-md">{currentUser.email}
+                        </CustomText>
                     </View>
-                    <Pressable onPress={handleLogout} className=" bg-red-500 p-3 rounded-3xl" >
+
+                    <Pressable onPress={handleLogout} className="bg-red-500 p-3 rounded-3xl flex-row items-center" >
                         <AntDesign name="login" size={24} color={colors.text} />
+                        <CustomText className="text-white text-lg ml-4">
+                            Logout
+                        </CustomText>
                     </Pressable>
                 </View>
-            )}
+            )
+            }
         </View >
     )
 }

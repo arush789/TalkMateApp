@@ -75,7 +75,7 @@ const Home = () => {
   };
 
   return (
-    <View className="flex-1 px-5">
+    <View className="flex-1 ">
       <Stack.Screen
         options={{
           headerShown: true,

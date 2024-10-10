@@ -1,6 +1,6 @@
-import { Entypo, MaterialIcons } from "@expo/vector-icons";
+import { Entypo, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 
 export const icons = {
   Home: (props) => <Entypo name="home" size={24} {...props} />,
-  Explore: (props) => <MaterialIcons name="explore" size={24} {...props} />,
+  Profile: (props) => <FontAwesome5 name="user-circle" size={24} {...props} />,
 };

@@ -1,4 +1,4 @@
-import { View, ScrollView, ActivityIndicator, Image, TouchableOpacity, Modal, Pressable, Alert } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Image, TouchableOpacity, Modal, Pressable, Text, Animated } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import CustomText from './CustomText';
 import { useTheme } from '@react-navigation/native';
@@ -6,6 +6,7 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import axios from 'axios';
 import { deleteMessageRoute } from '../app/api/APIroutes';
 import socket from '../socket';
+import { storage } from '../firebaseClient';
 
 const Messages = ({ messages, loading, setMessages, currentUser, contactId }) => {
     const { colors } = useTheme();
@@ -14,6 +15,16 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
     const [selectedMessage, setSelectedMessage] = useState();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [messageMenu, setMessageMenu] = useState(false);
+    const [gifStates, setGifStates] = useState({});
+    const fallbackImage = require('../assets/images/2019-GifsInEmail.png');
+
+
+    const toggleGifPlay = (id) => {
+        setGifStates((prev) => ({
+            ...prev,
+            [id]: !prev[id],
+        }));
+    };
 
     useEffect(() => {
         if (scrollViewRef.current) {
@@ -21,26 +32,15 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
         }
     }, [messages]);
 
-
     const openImageViewer = (index) => {
         setCurrentImageIndex(index);
         setVisible(true);
     };
 
-
     const closeImageViewer = () => {
         setVisible(false);
         setCurrentImageIndex(0);
     };
-
-
-    const images = messages
-        .filter((message) => message.image)
-        .map((message, index) => ({
-            url: message.image,
-            index: index
-        }));
-
 
     const handleDeleteMessage = async () => {
         if (selectedMessage?.fromSelf) {
@@ -52,11 +52,9 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                     await fileRef.delete();
                 }
 
-
                 await axios.post(deleteMessageRoute, {
                     messageId: messageIdToDelete,
                 });
-
 
                 socket.emit("delete-msg", {
                     to: contactId,
@@ -79,12 +77,11 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
     };
 
 
-
     return (
         <>
             <ScrollView
                 ref={scrollViewRef}
-                contentContainerStyle={{ padding: 16, paddingBottom: 100, flexGrow: 1 }}
+                contentContainerStyle={{ padding: 12, paddingBottom: 100, flexGrow: 1 }}
                 showsVerticalScrollIndicator={false}
             >
                 {loading ? (
@@ -95,28 +92,15 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                     </View>
                 ) : (
                     messages.map((message, index) => {
-                        const isoTime = message.time;
-                        const date = new Date(isoTime);
-
-                        const options = {
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            hour12: true,
-                        };
-
-                        const MessageTime = date.toLocaleString('en-US', options);
                         return (
-
                             <Pressable
                                 key={index}
                                 style={{
                                     alignSelf: message.fromSelf ? 'flex-end' : 'flex-start',
                                     backgroundColor: message.fromSelf ? colors.primary : colors.secondary,
-                                    padding: !message.message && message.image ? 5 : 12,
-                                    borderRadius: 20,
-                                    maxWidth: '75%',
-                                    marginVertical: 4,
+                                    padding: !message.message && (message.image || message.gif) ? 5 : 12,
                                 }}
+                                className="rounded-2xl m-w-[75%] my-1"
                                 onLongPress={() => {
                                     setSelectedMessage(message);
                                     setMessageMenu(true);
@@ -124,7 +108,7 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                             >
                                 {message.image && (
                                     <TouchableOpacity
-                                        onPress={() => openImageViewer(images.find(img => img.url === message.image).index)}
+                                        onPress={() => openImageViewer(index)}
                                         onLongPress={() => {
                                             setSelectedMessage(message);
                                             setMessageMenu(true);
@@ -133,46 +117,93 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                                         <Image
                                             source={{ uri: message.image }}
                                             style={{
-                                                width: 240,
-                                                height: 240,
-                                                borderRadius: 15,
                                                 marginBottom: message.message ? 10 : 0,
                                             }}
+                                            className="w-52 h-52 rounded-2xl"
                                             resizeMode="cover"
                                         />
                                     </TouchableOpacity>
                                 )}
-                                {message.message && (
+                                {message.gif && (
+                                    <View className="relative">
+                                        <TouchableOpacity
+                                            onPress={() => openImageViewer(index)}
+                                            onLongPress={() => {
+                                                setSelectedMessage(message);
+                                                setMessageMenu(true);
+                                            }}
+                                        >
+                                            <View style={{ overflow: 'hidden' }} className="w-52 h-52 rounded-xl relative">
+                                                {gifStates[message.id] ? (
+                                                    <Image
+                                                        source={{ uri: message.gif }}
+                                                        className="w-[100%] h-[100%]"
+                                                        resizeMode="cover"
+                                                        onLoad={() => {
 
-                                    <CustomText
+                                                            setTimeout(() => {
+                                                                setGifStates((prev) => ({
+                                                                    ...prev,
+                                                                    [message.id]: false,
+                                                                }));
+                                                            }, 3000);
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <Image
+                                                        source={fallbackImage}
+                                                        className="w-[100%] h-[100%] opacity-10"
+                                                        resizeMode="cover"
+                                                    />
+                                                )}
+                                            </View>
+                                            {!gifStates[message.id] && (
+                                                <Pressable
+                                                    onPress={() => toggleGifPlay(message.id)}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center',
+                                                        borderRadius: 10,
+                                                    }}
+                                                >
+                                                    <Text style={{ color: 'white' }} className="text-2xl">GIF</Text>
+                                                </Pressable>
+                                            )}
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                {message.message && (
+                                    <Text
                                         style={{
                                             color: message.fromSelf ? 'white' : colors.text,
                                         }}
+                                        className="text-[16px]"
                                     >
                                         {message.message}
-                                    </CustomText>
+                                    </Text>
                                 )}
-
-                                {/* <CustomText className="text-gray-500">
-                                    {MessageTime}
-                                </CustomText> */}
                             </Pressable>
-
-                        )
-                    }
-                    )
+                        );
+                    })
                 )}
             </ScrollView>
 
-
             <Modal visible={visible} transparent={true} onRequestClose={closeImageViewer}>
                 <ImageViewer
-                    imageUrls={images}
+                    imageUrls={messages.map((message) => ({
+                        url: message.image || message.gif,
+                    }))}
                     index={currentImageIndex}
                     onClick={closeImageViewer}
                 />
             </Modal>
-
 
             <Modal
                 visible={messageMenu}
