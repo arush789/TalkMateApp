@@ -6,7 +6,7 @@ import { Skeleton } from "native-base";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { getAllMessageRoute } from "@/app/api/APIroutes";
-import { useGlobalState } from "../components/globalState/GlobalProvider"
+import { useGlobalState } from "./globalState/GlobalProvider"
 import axios from "axios";
 
 const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pendingMessagesCount, setPendingMessagesCount }) => {
@@ -95,12 +95,6 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
                         fromSelf: fromSelf,
                     },
                 }));
-
-
-                // setPendingMessagesCount((prev) => ({
-                //     ...prev,
-                //     [contactId]: (prev[contactId] || 0) + 1,
-                // }));
             }
         });
 
@@ -110,7 +104,7 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
     }, [socket, currentUser]);
 
     return (
-        <View>
+        <View >
             <View className="flex-row justify-between items-center mb-6 px-5">
                 <CustomText className="mt-2 text-3xl font-semibold" style={{ color: colors.text }}>
                     Friends
@@ -123,9 +117,9 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
             {loading ? (
                 <>
                     {Array(3).fill(0).map((_, index) => (
-                        <View key={index} className="flex-row gap-x-4 mb-6 items-center">
+                        <View key={index} className=" flex-row gap-x-4  mb-6 items-center justify-center">
                             <Skeleton rounded="full" h="16" w="16" />
-                            <Skeleton.Text h="10" />
+                            <Skeleton.Text h="10" w="300px" />
                         </View>
                     ))}
                 </>

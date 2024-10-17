@@ -16,7 +16,6 @@ const ChatPage = () => {
     const [messages, setMessages] = useState([]);
     const [arrivalMessage, setArrivalMessage] = useState(null);
     const [selectedGif, setSelectedGif] = useState('');
-
     const [image, setImage] = useState();
     const [loading, setLoading] = useState(true);
 
@@ -91,8 +90,6 @@ const ChatPage = () => {
         }
     }, [params.contactId, params.currentUser]);
 
-
-
     const handleSendMsg = async (msg, image, gif) => {
         const messageText = msg || "";
         const imageUrl = image || "";
@@ -100,7 +97,7 @@ const ChatPage = () => {
         const messageId = uuid.v4();
 
         setMessages((prevMessages) => [
-            ...prevMessages,
+            ...prevMessages || "",
             { fromSelf: true, message: messageText, image: imageUrl, gif: gifUrl, messageId },
         ]);
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator, Modal, FlatList, Keyboard, } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -26,6 +26,7 @@ const ChatInput = ({
     const [gifs, setGifs] = useState([]);
     const [flatListHeight, setFlatListHeight] = useState(true);
     const [loadGif, setLoadGif] = useState(null)
+
 
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {

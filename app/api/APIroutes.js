@@ -1,5 +1,4 @@
-// export const host = "https://talkmate-server-a8vf.onrender.com";
-export const host = process.env.HOST;
+export const host = process.env.EXPO_PUBLIC_HOST2;
 export const registerRoute = `${host}/api/auth/register`;
 export const loginRoute = `${host}/api/auth/login`;
 export const setAvatarRoute = `${host}/api/auth/setAvatar`;

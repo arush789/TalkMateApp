@@ -1,4 +1,4 @@
-import { View, ScrollView, ActivityIndicator, Image, TouchableOpacity, Modal, Pressable, Text, Animated } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Image, TouchableOpacity, Modal, Pressable, Text, Animated, Dimensions } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import CustomText from './CustomText';
 import { useTheme } from '@react-navigation/native';
@@ -16,15 +16,27 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [messageMenu, setMessageMenu] = useState(false);
     const [gifStates, setGifStates] = useState({});
+    const [position, setPosition] = useState({ x: 0, y: 0 })
     const fallbackImage = require('../assets/images/2019-GifsInEmail.png');
-
-
+    const ref = useRef(null)
+    const messageRefs = useRef([])
     const toggleGifPlay = (id) => {
         setGifStates((prev) => ({
             ...prev,
             [id]: !prev[id],
         }));
     };
+
+    const time = new Date(selectedMessage?.time);
+
+    const displayDate = time.toLocaleString('en-GB', {
+        hour: 'numeric',
+        minute: 'numeric',
+        timeZone: 'Asia/Kolkata',
+        hour12: true
+    });
+    { displayDate }
+
 
     useEffect(() => {
         if (scrollViewRef.current) {
@@ -33,14 +45,22 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
     }, [messages]);
 
     const openImageViewer = (index) => {
-        setCurrentImageIndex(index);
+        const imageIndex = images.findIndex(img => img.url === messages[index].image);
+        setCurrentImageIndex(imageIndex);
         setVisible(true);
     };
-
     const closeImageViewer = () => {
         setVisible(false);
-        setCurrentImageIndex(0);
+        setCurrentImageIndex(0)
     };
+    const images = messages
+        .filter(message => message.image)
+        .map((message, index) => ({
+            url: message.image,
+            index: index
+        }));
+
+
 
     const handleDeleteMessage = async () => {
         if (selectedMessage?.fromSelf) {
@@ -68,10 +88,13 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                     )
                 );
 
+                setSelectedMessage()
+
             } catch (error) {
                 console.error("Error deleting message:", error);
             } finally {
                 setMessageMenu(false);
+                setPosition({ x: 0, y: 0 })
             }
         }
     };
@@ -92,6 +115,30 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                     </View>
                 ) : (
                     messages.map((message, index) => {
+
+                        if (!messageRefs.current[index]) {
+                            messageRefs.current[index] = React.createRef();
+                        }
+                        const previousMessage = index > 0 ? messages[index - 1] : null;
+                        const nextMessage = index < messages.length - 1 ? messages[index + 1] : null;
+                        const isFirstFromSelf = message.fromSelf && (!previousMessage || !previousMessage.fromSelf);
+                        const isLastFromSelf = message.fromSelf && (!nextMessage || !nextMessage.fromSelf);
+                        const isFirstFromOther = !message.fromSelf && (!previousMessage || previousMessage.fromSelf);
+                        const isLastFromOther = !message.fromSelf && (!nextMessage || nextMessage.fromSelf);
+                        const date = message?.time ? new Date(message.time) : null;
+                        const fallbackDate = new Date();
+
+                        let displayDate = (date && !isNaN(date)) ? date : fallbackDate;
+
+                        displayDate = displayDate.toLocaleString('en-GB', {
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            timeZone: 'Asia/Kolkata',
+                            hour12: true
+                        })
+
+
+
                         return (
                             <Pressable
                                 key={index}
@@ -100,11 +147,26 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                                     backgroundColor: message.fromSelf ? colors.primary : colors.secondary,
                                     padding: !message.message && (message.image || message.gif) ? 5 : 12,
                                 }}
-                                className="rounded-2xl m-w-[75%] my-1"
+
+                                className={`m-w-[75%] my-[1px] 
+                                    ${message.fromSelf
+                                        ? (isFirstFromSelf ? "rounded-l-2xl rounded-tr-2xl" : "")
+                                        : (isFirstFromOther ? "rounded-r-2xl rounded-tl-2xl" : "")}
+                                    ${message.fromSelf
+                                        ? (isLastFromSelf ? "rounded-l-2xl rounded-br-2xl" : "rounded-l-2xl")
+                                        : (isLastFromOther ? "rounded-bl-2xl rounded-r-2xl" : "rounded-r-2xl")}
+                                    ${selectedMessage && (selectedMessage?.messageId || selectedMessage?.id) !== (message.messageId || message.id) ? "opacity-40" : ""}
+                                `}
+
+                                ref={messageRefs.current[index]}
                                 onLongPress={() => {
                                     setSelectedMessage(message);
                                     setMessageMenu(true);
+                                    messageRefs.current[index].current.measure((x, y, width, height, pageX, pageY) => {
+                                        setPosition({ x: pageX, y: pageY });
+                                    });
                                 }}
+
                             >
                                 {message.image && (
                                     <TouchableOpacity
@@ -112,6 +174,9 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                                         onLongPress={() => {
                                             setSelectedMessage(message);
                                             setMessageMenu(true);
+                                            messageRefs.current[index].current.measure((x, y, width, height, pageX, pageY) => {
+                                                setPosition({ x: pageX, y: pageY });
+                                            });
                                         }}
                                     >
                                         <Image
@@ -119,7 +184,7 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                                             style={{
                                                 marginBottom: message.message ? 10 : 0,
                                             }}
-                                            className="w-52 h-52 rounded-2xl"
+                                            className="w-52 h-52 rounded-xl"
                                             resizeMode="cover"
                                         />
                                     </TouchableOpacity>
@@ -180,14 +245,21 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                                 )}
 
                                 {message.message && (
-                                    <Text
-                                        style={{
-                                            color: message.fromSelf ? 'white' : colors.text,
-                                        }}
-                                        className="text-[16px]"
-                                    >
-                                        {message.message}
-                                    </Text>
+                                    <>
+                                        <Text
+                                            style={{
+                                                color: message.fromSelf ? 'white' : colors.text,
+                                            }}
+                                            className={`text-[16px] ${selectedMessage
+                                                ? (selectedMessage?.messageId || selectedMessage?.id) !== (message.messageId || message.id)
+                                                    ? "opacity-20 "
+                                                    : ""
+                                                : ""}`}
+                                        >
+                                            {message.message}
+                                        </Text>
+
+                                    </>
                                 )}
                             </Pressable>
                         );
@@ -197,9 +269,7 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
 
             <Modal visible={visible} transparent={true} onRequestClose={closeImageViewer}>
                 <ImageViewer
-                    imageUrls={messages.map((message) => ({
-                        url: message.image || message.gif,
-                    }))}
+                    imageUrls={images}
                     index={currentImageIndex}
                     onClick={closeImageViewer}
                 />
@@ -208,26 +278,38 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
             <Modal
                 visible={messageMenu}
                 transparent={true}
-                onRequestClose={() => setMessageMenu(false)}
-                animationType="slide"
+                onRequestClose={() => {
+                    setMessageMenu(false)
+                    setPosition({ x: 0, y: 0 })
+                    setSelectedMessage()
+                }}
+                animationType="fade"
             >
-                <View className="flex-1 justify-end pb-10" style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}>
-                    <View className="bg-white rounded-3xl p-4 shadow-lg mx-4 space-y-5">
+                <View
+                    className="absolute"
+                    style={{
+                        top: selectedMessage?.image ? position.y + 180 : position.y + 10,
+                        left: selectedMessage?.fromSelf ? undefined : position.x - 10,
+                        right: selectedMessage?.fromSelf ? 10 : undefined,
+                    }}
+                >
+                    <View className=" rounded-3xl w-52 p-4 shadow-lg mx-4 space-y-5" style={{ backgroundColor: "rgba(50, 50, 50, 0.8)" }}>
                         {selectedMessage?.fromSelf && (
-                            <Pressable onPress={handleDeleteMessage} className="py-2">
-                                <View className="flex-row justify-center items-center gap-x-2">
-                                    <CustomText className="text-red-500 text-xl">Unsend</CustomText>
+                            <Pressable onPress={handleDeleteMessage} className="pt-2">
+                                <View className=" justify-center items-center mb-2">
+                                    <CustomText className="text-red-500 text-md">Unsend</CustomText>
                                 </View>
+                                <CustomText className='text-right text-gray-500'>{displayDate}</CustomText>
                             </Pressable>
                         )}
                         {!selectedMessage?.fromSelf && (
-                            <View>
-                                <CustomText>Cannot delete others' messages</CustomText>
+                            <View className=" justify-center items-center ">
+                                <CustomText className='text-left text-gray-500'>{displayDate}</CustomText>
                             </View>
                         )}
                     </View>
                 </View>
-            </Modal>
+            </Modal >
         </>
     );
 };
