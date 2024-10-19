@@ -1,4 +1,4 @@
-import { View, ScrollView, ActivityIndicator, Image, TouchableOpacity, Modal, Pressable, Text, Animated, Dimensions } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Image, TouchableOpacity, Modal, Pressable, Text, Animated, Dimensions, FlatList } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import CustomText from './CustomText';
 import { useTheme } from '@react-navigation/native';
@@ -10,7 +10,6 @@ import { storage } from '../firebaseClient';
 
 const Messages = ({ messages, loading, setMessages, currentUser, contactId }) => {
     const { colors } = useTheme();
-    const scrollViewRef = useRef(null);
     const [visible, setVisible] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -18,6 +17,7 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
     const [gifStates, setGifStates] = useState({});
     const [position, setPosition] = useState({ x: 0, y: 0 })
     const fallbackImage = require('../assets/images/2019-GifsInEmail.png');
+    const FlatListRef = useRef(null)
     const ref = useRef(null)
     const messageRefs = useRef([])
     const toggleGifPlay = (id) => {
@@ -27,20 +27,18 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
         }));
     };
 
-    const time = new Date(selectedMessage?.time);
+    useEffect(() => {
+        if (FlatListRef.current) {
+            FlatListRef.current.scrollToEnd({ animated: false });
+        }
+    }, [messages]);
 
-    const displayDate = time.toLocaleString('en-GB', {
-        hour: 'numeric',
-        minute: 'numeric',
-        timeZone: 'Asia/Kolkata',
-        hour12: true
-    });
-    { displayDate }
+
 
 
     useEffect(() => {
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollToEnd({ animated: true });
+        if (FlatListRef.current) {
+            FlatListRef.current.scrollToOffset({ offset: 0, animated: false });
         }
     }, [messages]);
 
@@ -54,18 +52,17 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
         setCurrentImageIndex(0)
     };
     const images = messages
-        .filter(message => message.image)
+        ?.filter(message => message.image)
         .map((message, index) => ({
             url: message.image,
             index: index
         }));
 
 
-
     const handleDeleteMessage = async () => {
         if (selectedMessage?.fromSelf) {
             try {
-                const messageIdToDelete = selectedMessage?.messageId || selectedMessage?.id;
+                const messageIdToDelete = selectedMessage?.messageId;
 
                 if (selectedMessage.image) {
                     const fileRef = storage.refFromURL(selectedMessage.image);
@@ -84,7 +81,7 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
 
                 setMessages((prevMessages) =>
                     prevMessages.filter(
-                        (message) => (message.messageId || message.id) !== messageIdToDelete
+                        (message) => (message.messageId) !== messageIdToDelete
                     )
                 );
 
@@ -101,21 +98,23 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
 
 
     return (
-        <>
-            <ScrollView
-                ref={scrollViewRef}
-                contentContainerStyle={{ padding: 12, paddingBottom: 100, flexGrow: 1 }}
-                showsVerticalScrollIndicator={false}
-            >
-                {loading ? (
-                    <ActivityIndicator size="large" color={colors.primary} />
-                ) : messages.length === 0 ? (
-                    <View style={{ alignItems: 'center', marginTop: 20 }}>
-                        <CustomText style={{ color: colors.text }}>No Messages yet</CustomText>
-                    </View>
-                ) : (
-                    messages.map((message, index) => {
-
+        <View className="flex-1">
+            {loading ? (
+                <ActivityIndicator size="large" color={colors.primary} />
+            ) : messages.length === 0 ? (
+                <View style={{ alignItems: 'center', marginTop: 20 }}>
+                    <CustomText style={{ color: colors.text }}>No Messages yet</CustomText>
+                </View>
+            ) : (
+                <FlatList
+                    data={messages}
+                    ref={FlatListRef}
+                    contentContainerStyle={{ padding: 12, paddingBottom: 100, flexGrow: 1 }}
+                    onContentSizeChange={() => {
+                        FlatListRef.current?.scrollToEnd({ animated: false });
+                    }}
+                    keyExtractor={(item, index) => item.messageId || index.toString()}
+                    renderItem={({ item: message, index }) => {
                         if (!messageRefs.current[index]) {
                             messageRefs.current[index] = React.createRef();
                         }
@@ -125,39 +124,25 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                         const isLastFromSelf = message.fromSelf && (!nextMessage || !nextMessage.fromSelf);
                         const isFirstFromOther = !message.fromSelf && (!previousMessage || previousMessage.fromSelf);
                         const isLastFromOther = !message.fromSelf && (!nextMessage || nextMessage.fromSelf);
-                        const date = message?.time ? new Date(message.time) : null;
-                        const fallbackDate = new Date();
-
-                        let displayDate = (date && !isNaN(date)) ? date : fallbackDate;
-
-                        displayDate = displayDate.toLocaleString('en-GB', {
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            timeZone: 'Asia/Kolkata',
-                            hour12: true
-                        })
-
 
 
                         return (
                             <Pressable
-                                key={index}
+                                key={message.messageId || index.toString()}
                                 style={{
                                     alignSelf: message.fromSelf ? 'flex-end' : 'flex-start',
                                     backgroundColor: message.fromSelf ? colors.primary : colors.secondary,
                                     padding: !message.message && (message.image || message.gif) ? 5 : 12,
                                 }}
-
                                 className={`m-w-[75%] my-[1px] 
-                                    ${message.fromSelf
-                                        ? (isFirstFromSelf ? "rounded-l-2xl rounded-tr-2xl" : "")
-                                        : (isFirstFromOther ? "rounded-r-2xl rounded-tl-2xl" : "")}
-                                    ${message.fromSelf
-                                        ? (isLastFromSelf ? "rounded-l-2xl rounded-br-2xl" : "rounded-l-2xl")
-                                        : (isLastFromOther ? "rounded-bl-2xl rounded-r-2xl" : "rounded-r-2xl")}
-                                    ${selectedMessage && (selectedMessage?.messageId || selectedMessage?.id) !== (message.messageId || message.id) ? "opacity-40" : ""}
-                                `}
-
+                            ${message.fromSelf
+                                        ? isFirstFromSelf ? 'rounded-l-2xl rounded-tr-2xl' : ''
+                                        : isFirstFromOther ? 'rounded-r-2xl rounded-tl-2xl' : ''} 
+                            ${message.fromSelf
+                                        ? isLastFromSelf ? 'rounded-l-2xl rounded-br-2xl' : 'rounded-l-2xl'
+                                        : isLastFromOther ? 'rounded-bl-2xl rounded-r-2xl' : 'rounded-r-2xl'}
+                            ${selectedMessage && selectedMessage.messageId !== message.messageId ? 'opacity-40' : ''}
+                        `}
                                 ref={messageRefs.current[index]}
                                 onLongPress={() => {
                                     setSelectedMessage(message);
@@ -166,7 +151,6 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                                         setPosition({ x: pageX, y: pageY });
                                     });
                                 }}
-
                             >
                                 {message.image && (
                                     <TouchableOpacity
@@ -205,7 +189,6 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                                                         className="w-[100%] h-[100%]"
                                                         resizeMode="cover"
                                                         onLoad={() => {
-
                                                             setTimeout(() => {
                                                                 setGifStates((prev) => ({
                                                                     ...prev,
@@ -243,29 +226,24 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                                         </TouchableOpacity>
                                     </View>
                                 )}
-
                                 {message.message && (
-                                    <>
-                                        <Text
-                                            style={{
-                                                color: message.fromSelf ? 'white' : colors.text,
-                                            }}
-                                            className={`text-[16px] ${selectedMessage
-                                                ? (selectedMessage?.messageId || selectedMessage?.id) !== (message.messageId || message.id)
-                                                    ? "opacity-20 "
-                                                    : ""
-                                                : ""}`}
-                                        >
-                                            {message.message}
-                                        </Text>
-
-                                    </>
+                                    <Text
+                                        style={{
+                                            color: message.fromSelf ? 'white' : colors.text,
+                                        }}
+                                        className={`text-[16px] ${selectedMessage && selectedMessage.messageId !== message.messageId
+                                            ? 'opacity-20 '
+                                            : ''
+                                            }`}
+                                    >
+                                        {message.message}
+                                    </Text>
                                 )}
                             </Pressable>
                         );
-                    })
-                )}
-            </ScrollView>
+                    }}
+                />
+            )}
 
             <Modal visible={visible} transparent={true} onRequestClose={closeImageViewer}>
                 <ImageViewer
@@ -297,20 +275,20 @@ const Messages = ({ messages, loading, setMessages, currentUser, contactId }) =>
                         {selectedMessage?.fromSelf && (
                             <Pressable onPress={handleDeleteMessage} className="pt-2">
                                 <View className=" justify-center items-center mb-2">
-                                    <CustomText className="text-red-500 text-md">Unsend</CustomText>
+                                    <CustomText className="text-red-500 text-lg ">Unsend</CustomText>
                                 </View>
-                                <CustomText className='text-right text-gray-500'>{displayDate}</CustomText>
+
                             </Pressable>
                         )}
                         {!selectedMessage?.fromSelf && (
                             <View className=" justify-center items-center ">
-                                <CustomText className='text-left text-gray-500'>{displayDate}</CustomText>
+                                <Text className="text-white">Cannot see others message </Text>
                             </View>
                         )}
                     </View>
                 </View>
             </Modal >
-        </>
+        </View>
     );
 };
 

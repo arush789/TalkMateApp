@@ -158,7 +158,7 @@ const ChatInput = ({
 
     return (
         <View className="relative mb-4">
-            <View className={`absolute bottom-0 left-0 right-0 rounded-3xl p-2 mb-2 shadow-lg mx-2`} style={{ backgroundColor: colors.secondary }}>
+            <View className={`absolute bottom-0 left-0 right-0 rounded-full p-2 shadow-lg mx-2`} style={{ backgroundColor: colors.secondary }}>
                 {image ? (
                     <View className="mb-2 justify-center pt-2 px-2">
                         <Image source={{ uri: image }} className="w-full h-96 rounded-xl mr-2 " style={{ objectFit: "contain", backgroundColor: colors.background }} />

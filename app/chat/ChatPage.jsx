@@ -19,8 +19,6 @@ const ChatPage = () => {
     const [image, setImage] = useState();
     const [loading, setLoading] = useState(true);
 
-
-
     useEffect(() => {
         socket.on("msg-recieve", (data) => {
             if (data) {
@@ -37,11 +35,10 @@ const ChatPage = () => {
 
         socket.on("msg-deleted", (data) => {
 
-            if (data.messageId || data.id) {
+            if (data.messageId) {
                 setMessages((prevMessages) => {
                     const updatedMessages = prevMessages.filter((message) => {
-                        return (message.id && message.id !== data.messageId) ||
-                            (message.messageId && message.messageId !== data.messageId);
+                        return (message.messageId && message.messageId !== data.messageId);
                     });
                     return updatedMessages;
                 });

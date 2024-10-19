@@ -5,7 +5,7 @@ import { router, Stack } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useTheme } from '@react-navigation/native'
 import CustomText from '../../components/CustomText'
-import { AntDesign } from '@expo/vector-icons'
+import { AntDesign, FontAwesome5, MaterialIcons } from '@expo/vector-icons'
 
 const Explore = () => {
     const [currentUser, setCurrentUser] = useState(null);
@@ -36,7 +36,7 @@ const Explore = () => {
 
 
     return (
-        <View className=" flex-1 px-5 justify-center ">
+        <View className=" flex-1 px-5 mb-28 justify-center">
             <Stack.Screen
                 options={{
                     headerShown: true,
@@ -45,37 +45,52 @@ const Explore = () => {
                 }}
             />
             {currentUser && (
-                <View className="space-y-4 p-4 rounded-3xl items-center " style={{
-                    backgroundColor: colors.secondary
+                <View className="space-y-4 p-4 rounded-3xl  h-full " style={{
+                    backgroundColor: colors.tabBarBgColor
                 }}>
-                    <View className=" justify-center items-center ">
-                        <View className="border-2 border-white rounded-full ">
+                    <View className=" justify-center items-center gap-y-4">
+                        <View className="border-2  rounded-full " style={{ borderColor: colors.text }}>
                             <Image
                                 source={{ uri: `data:image/png;base64,${currentUser.avatarImage}` }}
                                 className="w-14 h-14 rounded-full"
                                 resizeMode="cover"
                             />
                         </View>
-                    </View>
-                    <View className="items-center">
-                        <CustomText style={{
-                            color: colors.text
-                        }}
-                            className="text-xl">{currentUser.username}
-                        </CustomText>
-                        <CustomText style={{
-                            color: colors.text
-                        }}
-                            className="text-md">{currentUser.email}
-                        </CustomText>
+                        <View className="items-center">
+                            <CustomText style={{
+                                color: colors.text
+                            }}
+                                className="text-xl">{currentUser.username}
+                            </CustomText>
+                            <CustomText style={{
+                                color: colors.text
+                            }}
+                                className="text-md">{currentUser.email}
+                            </CustomText>
+                        </View>
                     </View>
 
-                    <Pressable onPress={handleLogout} className="bg-red-500 p-3 rounded-3xl flex-row items-center" >
-                        <AntDesign name="login" size={24} color={colors.text} />
-                        <CustomText className="text-white text-lg ml-4">
-                            Logout
-                        </CustomText>
-                    </Pressable>
+                    <View className="space-y-5 ">
+                        <Pressable className=" p-5 rounded-3xl  flex-row items-center" style={{ backgroundColor: colors.background }}>
+                            <FontAwesome5 name="user-edit" size={24} color={colors.text} />
+                            <CustomText className=" text-lg ml-4" style={{ color: colors.text }}>
+                                Edit profile
+                            </CustomText>
+                        </Pressable>
+                        <Pressable className="  p-5 rounded-3xl flex-row items-center" style={{ backgroundColor: colors.background }} >
+                            <MaterialIcons name="support-agent" size={24} color={colors.text} />
+                            <CustomText className=" text-lg ml-4" style={{ color: colors.text }}>
+                                Support
+                            </CustomText>
+                        </Pressable>
+                        <Pressable onPress={handleLogout} className="bg-red-500 p-5 rounded-3xl flex-row items-center" >
+                            <AntDesign name="login" size={24} color="white" />
+                            <CustomText className="text-white text-lg ml-4">
+                                Logout
+                            </CustomText>
+                        </Pressable>
+                    </View>
+
                 </View>
             )
             }

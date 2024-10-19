@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Image, View } from "react-native";
+import { FlatList, Image, View } from "react-native";
 import { useTheme } from "@react-navigation/native";
 import CustomText from './CustomText';
 import { Skeleton } from "native-base";
@@ -124,29 +124,31 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
                     ))}
                 </>
             ) : (
-                <>
-                    {contacts && contacts.length > 0 ? (
-                        contacts.map((contact) => {
-                            const imageUri = imageErrors[contact._id]
-                                ? fallbackImage
-                                : { uri: `data:image/png;base64,${contact.avatarImage}` };
-
+                <FlatList
+                    data={contacts}
+                    keyExtractor={(item) => item._id}
+                    renderItem={({ item }) => {
+                        const imageUri = imageErrors[item._id]
+                            ? fallbackImage
+                            : { uri: `data:image/png;base64,${item.avatarImage}` };
+                        if (item && item.username) {
                             return (
                                 <Link
                                     href={{
                                         pathname: '/chat/ChatPage',
                                         params: {
                                             currentUser: currentUser._id,
-                                            contactName: contact.username,
-                                            contactId: contact._id,
-                                        }
+                                            contactName: item.username,
+                                            contactId: item._id,
+                                        },
                                     }}
-                                    onPress={() => handleChatChange(contact)}
-                                    key={contact._id}
+                                    onPress={() => handleChatChange(item)}
+                                    key={item._id}
                                     className="mb-3 rounded-full mx-4"
                                     style={{ backgroundColor: colors.secondary }}
                                 >
                                     <View className="flex-row items-center p-4 mb-4">
+
                                         <View
                                             className="border-2 p-1 rounded-full mr-4"
                                             style={{ borderColor: colors.text }}
@@ -155,35 +157,43 @@ const Friends = ({ currentUser, contacts, loading, handleChatChange, socket, pen
                                                 source={imageUri}
                                                 className="w-12 h-12 rounded-full"
                                                 resizeMode="cover"
-                                                onError={() => handleImageError(contact._id)}
+                                                onError={() => handleImageError(item._id)}
                                             />
                                         </View>
 
                                         <View>
                                             {/* Username */}
                                             <CustomText className="text-lg font-medium" style={{ color: colors.text }}>
-                                                {contact.username}
+                                                {item.username}
                                             </CustomText>
+
                                             {/* Last message */}
-                                            <CustomText className={`text-sm text-gray-600`}>
-                                                {lastMessageShow[contact._id]?.fromSelf ? "You: " : ""}{lastMessageShow[contact._id]?.text || "Loading..."}
+                                            <CustomText className="text-sm text-gray-600">
+                                                {lastMessageShow[item._id]?.fromSelf ? "You: " : ""}
+                                                {lastMessageShow[item._id]?.text || "Loading..."}
                                             </CustomText>
-                                            {pendingMessagesCount[contact._id] > 0 && (
+
+                                            {/* Pending message count */}
+                                            {pendingMessagesCount[item._id] > 0 && (
                                                 <CustomText className="text-xs text-red-500">
-                                                    {pendingMessagesCount[contact._id]} new message{pendingMessagesCount[contact._id] > 1 ? 's' : ''}
+                                                    {pendingMessagesCount[item._id]} new message
+                                                    {pendingMessagesCount[item._id] > 1 ? 's' : ''}
                                                 </CustomText>
                                             )}
                                         </View>
                                     </View>
                                 </Link>
                             );
-                        })
-                    ) : (
-                        <CustomText className="text-center mt-10 text-base" style={{ color: colors.text }}>
-                            No contacts to display.
-                        </CustomText>
-                    )}
-                </>
+                        } else {
+                            return (
+                                <CustomText>
+                                    No Friends
+                                </CustomText>
+                            )
+                        }
+                    }}
+                />
+
             )}
         </View>
     );

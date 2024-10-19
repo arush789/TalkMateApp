@@ -83,17 +83,17 @@ const Home = () => {
           headerStyle: { height: 50 },
         }}
       />
-      <ScrollView className="flex-1">
-        <Friends
-          currentUser={currentUser}
-          contacts={contacts}
-          socket={socket}
-          loading={loading}
-          pendingMessagesCount={pendingMessagesCount}
-          setPendingMessagesCount={setPendingMessagesCount}
-          handleChatChange={handleChatChange}
-        />
-      </ScrollView>
+
+      <Friends
+        currentUser={currentUser}
+        contacts={contacts}
+        socket={socket}
+        loading={loading}
+        pendingMessagesCount={pendingMessagesCount}
+        setPendingMessagesCount={setPendingMessagesCount}
+        handleChatChange={handleChatChange}
+      />
+
     </View>
   );
 };
